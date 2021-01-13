@@ -39,7 +39,13 @@ def send_hannah_line(update: Update, context: CallbackContext) -> None:
 def main():
     """Start the bot."""
 
-    updater = Updater(os.getenv("BOT_TOKEN"), use_context=True)
+    TOKEN = os.getenv("BOT_TOKEN")
+    PORT = os.getenv("PORT") if os.getenv("PORT") is not None else 5000
+
+    updater = Updater(TOKEN, use_context=True)
+
+    updater.start_webhook(listen="0.0.0.0", port=int(PORT), url_path=TOKEN)
+    updater.bot.set_webhook("https://rocky-garden-75839.herokuapp.com/" + TOKEN)
 
     # Get the dispatcher to register handlers
     dispatcher = updater.dispatcher
@@ -51,9 +57,7 @@ def main():
     # on noncommand i.e message - send a Hannah line
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, send_hannah_line))
 
-    # Start the Bot
     print("Running the Hannah Bot")
-    updater.start_polling()
 
     # Run the bot until you press Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT.
