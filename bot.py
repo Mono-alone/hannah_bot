@@ -7,14 +7,19 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, Callb
 from telegram.messageentity import MessageEntity
 
 
+BOT_USERNAME = "@SexyHannahBot"
+
+
 def start(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /start is issued."""
-    update.message.reply_text('I am the Sexy Hannah Bot! Use /help to learn how to talk to me.')
+    update.message.reply_text(
+        'I am the Sexy Hannah Bot! Use /help to learn how to talk to me.')
 
 
 def help_command(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /help is issued."""
-    update.message.reply_text("I'll reply to any mention in a group chat. Or just text me privately.")
+    update.message.reply_text(
+        "I'll reply to any mention in a group chat. Or just text me privately.")
 
 
 def get_hannah_line():
@@ -26,12 +31,16 @@ def get_hannah_line():
 def send_hannah_line(update: Update, context: CallbackContext) -> None:
     """
     Send a generated Hannah line. In personal chats, the bot will reply to any message.
-    In group chats, the bot will only reply if mentioned
+    In group chats, the bot will only reply if it's mentioned
     """
     if update.message.chat.type == Chat.GROUP:
         entities = update.message.entities
         if len(entities) > 0 and entities[0].type == MessageEntity.MENTION:
-            update.message.reply_text(get_hannah_line())
+            offset = int(entities[0].offset)
+            length = int(entities[0].length)
+            mentioned = update.message.text[offset:length]
+            if mentioned == BOT_USERNAME:
+                update.message.reply_text(get_hannah_line())
     else:
         update.message.reply_text(get_hannah_line())
 
@@ -44,8 +53,9 @@ def main():
 
     updater = Updater(TOKEN, use_context=True)
 
-    updater.start_webhook(listen="0.0.0.0", port=int(PORT), url_path=TOKEN)
-    updater.bot.set_webhook("https://rocky-garden-75839.herokuapp.com/" + TOKEN)
+    # updater.start_webhook(listen="0.0.0.0", port=int(PORT), url_path=TOKEN)
+    # updater.bot.set_webhook("https://rocky-garden-75839.herokuapp.com/" + TOKEN)
+    updater.start_polling()
 
     # Get the dispatcher to register handlers
     dispatcher = updater.dispatcher
@@ -55,7 +65,8 @@ def main():
     dispatcher.add_handler(CommandHandler("help", help_command))
 
     # on noncommand i.e message - send a Hannah line
-    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, send_hannah_line))
+    dispatcher.add_handler(MessageHandler(
+        Filters.text & ~Filters.command, send_hannah_line))
 
     print("Running the Hannah Bot")
 
